@@ -1,0 +1,12 @@
+.root {
+    display: block
+}
+
+.panel-and-game {
+    display: flex
+}
+
+.view {
+    display: flex;
+    /* width: 25%; */
+}

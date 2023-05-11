@@ -1,0 +1,61 @@
+.panel {
+    width: 70%;
+}
+
+.filter-options {
+    width: 80%;
+    border-collapse: collapse;
+    border: 1px solid black;
+    margin-bottom: 30px;
+}
+
+.filter-options th {
+    padding: 5px;
+    text-align: left;
+    border: 1px solid black;
+}
+
+.filter-options td {
+    padding: 5px;
+    margin: 0;
+    border: 1px solid black;
+}
+
+.filter-options-settings-button {
+    margin: auto;
+}
+
+.first-tree {
+    width: 25%;
+}
+
+.tree {
+    /* width: 25%; */
+}
+
+.tree > h3 {
+    padding-left: 30px;
+}
+
+.tree-node {
+    margin-bottom: 15px;
+}
+
+.tree-el {
+    display: flex;
+    margin-bottom: 5px;
+}
+
+.tree-el-with-image {
+    
+}
+
+.tree-el li {
+    padding-bottom: 25px;
+    margin-bottom: 25px;
+}
+
+.tree-children ul {
+    padding-left: 20px;
+    margin-top: 0px;
+}
