@@ -7,11 +7,15 @@ import base64
 from bs4 import BeautifulSoup
 import re
 import conf
+from WebAutomation.diplom_work.services.mail import get_email_data
 #%%
 установить_вывод_всех_ячеек()
 #%%
 # Создание экземпляра
 mail = imaplib.IMAP4_SSL('imap.yandex.ru')
+#%%
+# Получение данных
+
 #%%
 # Авторизация
 mail.login(conf.EMAIL, conf.PASSWORD)

@@ -45,3 +45,5 @@ __pycache__/
 *.ipynb
 client/test_note_js/
 **/vk_config.v*.json
+.sqllsrc.json
+coc-settings.json

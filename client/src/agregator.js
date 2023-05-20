@@ -1,5 +1,5 @@
-import React from "react"
-import "./agregator.css"
+import React, { useEffect, useState } from "react"
+import { fetchEmailServices } from "../http/emailAPI"
 
 const data = [
     {
@@ -87,7 +87,7 @@ class TreeNode extends React.Component {
 
         const image = this.props.image && <img alt="" src={this.props.image} />
         const treeElClass = image ? 'tree-el-with-image' : 'tree-el'
-
+        
         const renderChildren = (children) => {
             if (isExpanded && Array.isArray(children)) {
                 return <Tree data={children}></Tree>
@@ -140,49 +140,9 @@ class Tree extends React.Component {
     }
 }
 
-class Panel extends React.Component {
-    render() {
-        const { data } = this.props
-        return (
-            <div className="panel">
-                <h2>Панель фильтрации</h2>
-                    {data.map((main_node) => {
-                        return (
-                            <table className="filter-options">
-                                <thead>
-                                    <tr>
-                                        <th>{main_node.label}</th>
-                                        <th>Включен</th>
-                                        <th>Лимит сообщений</th>
-                                        <th>Другие настройки</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {main_node.children.map((node) => {
-                                        const image = node.image && <img alt="" src={node.image} />
-                                        return (
-                                            <tr>
-                                                <td>{image} {node.label}</td>
-                                                <td>{node.enabled ? 'Да' : 'Нет'}</td>
-                                                <td>{node.limit}</td>
-                                                <td>
-                                                    <button className="filter-options-settings-button">Настройки</button>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
-                        )
-                    })}
-            </div>
-        )
-    }
-}
-
-export function viewPanel() {
-    return <Panel data={data}></Panel>
-}
+// export function viewPanel() {
+//     return <Panel data={data}></Panel>
+// }
 
 export function viewTree(name) {
     return (
@@ -192,18 +152,18 @@ export function viewTree(name) {
     )
 }
 
-export class AgregatorApp extends React.Component {
-    constructor(props) {
-        super(props)
-        this.state = {
-            ...data2,
-        }
+// export class AgregatorApp extends React.Component {
+//     constructor(props) {
+//         super(props)
+//         this.state = {
+//             ...data2,
+//         }
 
-    }
+//     }
 
-    render() {
-        return (
-            <div></div>
-        )
-    }
-}
+//     render() {
+//         return (
+//             <div></div>
+//         )
+//     }
+// }
