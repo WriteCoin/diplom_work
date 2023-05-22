@@ -44,10 +44,10 @@ export const Panel = () => {
             <MDBCol>
                 <MDBCard>
                     {/* <MDBCardImage
-                        className="img-fluid"
-                        src="https://mdbootstrap.com/img/Photos/Others/images/43.webp"
-                        waves
-                    /> */}
+                            className="img-fluid"
+                            src="https://mdbootstrap.com/img/Photos/Others/images/43.webp"
+                            waves
+                        /> */}
                     <MDBCardBody>
                         <MDBCardTitle>Настройки</MDBCardTitle>
                         <MDBCardText>
@@ -108,22 +108,22 @@ export const Panel = () => {
                                                     ></input>
                                                     Нет
                                                     {/* <span>
-                                            <input
-                                                type='radio'
-                                                value='1'
-                                                
-                                                name="enabled"
-                                            ></input>
-                                            Да
-                                        </span> */}
+                                                <input
+                                                    type='radio'
+                                                    value='1'
+                                                    
+                                                    name="enabled"
+                                                ></input>
+                                                Да
+                                            </span> */}
                                                     {/* <input
-                                            type='radio'
-                                            value='0'
-                                            checked={item.enabled ? 'true' : 'false'}
-                                            name="enabled"
-                                        >
-                                            Нет
-                                        </input> */}
+                                                type='radio'
+                                                value='0'
+                                                checked={item.enabled ? 'true' : 'false'}
+                                                name="enabled"
+                                            >
+                                                Нет
+                                            </input> */}
                                                 </td>
                                                 <td>{item.limit}</td>
                                                 <td>{item.imap_server}</td>
@@ -141,8 +141,8 @@ export const Panel = () => {
                                                     </button>
                                                 </td>
                                                 {/* <td>
-                                        <button className="filter-options-settings-button">Настройки</button>
-                                    </td> */}
+                                            <button className="filter-options-settings-button">Настройки</button>
+                                        </td> */}
                                             </tr>
                                         )
                                     })}

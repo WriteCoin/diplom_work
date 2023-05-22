@@ -35,9 +35,39 @@ const FormEmailProfile = ({
     }
 
     const onChangeIsActive = (event) => {
-        setIsActive(event.target.value)
+        setIsActive(true)
         setButtonVisible(true)
     }
+
+    const onOffActive = (event) => {
+        setIsActive(false)
+        console.log("Отключение всех профилей")
+        setEmailProfiles(
+            emailProfiles.map(async (emailProfile) => {
+                console.log("emailProfile", emailProfile)
+                try {
+                    const data = await changeEmailProfile({
+                        ...emailProfile,
+                        id: emailProfile.email_profile_id,
+                        isActive: false,
+                    })
+                    return data
+                } catch (error) {
+                    return console.error(error)
+                }
+            })
+        )
+    }
+    // for (let index = 0; index < emailProfiles.length; index++) {
+    //     const emailProfile = emailProfiles[index];
+    //     const newEmailProfile = {...emailProfile, isActive: false}
+    //     try {
+    //         const data = await changeEmailProfile(newEmailProfile)
+    //         if (data.error) {
+    //             throw data
+    //         }
+    //     }
+    // }
 
     const editEmailProfile = async () => {
         try {
@@ -99,18 +129,48 @@ const FormEmailProfile = ({
         <></>
     )
 
+    console.log("username", username)
+    console.log("isActive", isActive)
+
+    // кнопка активации профиля
     const radio = !email_id ? (
+        // для изменяемых профилей
         <Col>
-            <Form.Check 
+            <Form.Check
                 type="radio"
-                value={isActive ? '1' : '0'}
+                checked={isActive}
                 id="is_active"
+                name="is_active"
                 label="Активировать"
                 onChange={onChangeIsActive}
             />
         </Col>
     ) : (
+        // для добавляемого профиля
         <></>
+    )
+
+    // кнопка отключения профилей почты
+    const radioOff = !email_id ? (
+        <></>
+    ) : (
+        <Row className="mt-5">
+            <Col md="8"></Col>
+            <Col md="3">
+                <Form.Check
+                    type="radio"
+                    checked={
+                        !emailProfiles.find(
+                            (emailProfile) => emailProfile.is_active
+                        )
+                    }
+                    id="is_active"
+                    name="is_active"
+                    label="Отключить все"
+                    onChange={onOffActive}
+                />
+            </Col>
+        </Row>
     )
 
     return (
@@ -135,9 +195,10 @@ const FormEmailProfile = ({
                 {radio}
             </Row>
             <Row className="mt-1">
-                <Col md="7"></Col>
-                <Col md="2">{button}</Col>
+                <Col md="8"></Col>
+                <Col md="3">{button}</Col>
             </Row>
+            {radioOff}
         </Form>
     )
 }

@@ -1,3 +1,8 @@
+.container {
+    padding-right: 0px;
+    margin-right: 1px;
+}
+
 .panel {
     width: 70%;
 }
@@ -58,4 +63,8 @@
 .tree-children ul {
     padding-left: 20px;
     margin-top: 0px;
+}
+
+.tree-card {
+    color: black;
 }

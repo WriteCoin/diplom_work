@@ -9,12 +9,17 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     MetaData,
-    DateTime
+    DateTime,
 )
 from datetime import datetime
 from uuid import UUID
 import json
-from sqlalchemy.ext.declarative import declarative_base, as_declarative, declared_attr, DeclarativeMeta
+from sqlalchemy.ext.declarative import (
+    declarative_base,
+    as_declarative,
+    declared_attr,
+    DeclarativeMeta,
+)
 from sqlalchemy.orm import sessionmaker, registry
 from pprint import pprint
 from WebAutomation.general_utils import *
@@ -30,8 +35,10 @@ Session = sessionmaker(bind=engine)
 metadata = MetaData()
 mapper_registry = registry(metadata=metadata)
 
+
 def as_dict(obj):
     return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+
 
 class OutputMixin(object):
     RELATIONSHIPS_TO_DICT = False
@@ -42,8 +49,10 @@ class OutputMixin(object):
     def to_dict(self, rel=None, backref=None):
         if rel is None:
             rel = self.RELATIONSHIPS_TO_DICT
-        res = {column.key: getattr(self, attr)
-               for attr, column in self.__mapper__.c.items()}
+        res = {
+            column.key: getattr(self, attr)
+            for attr, column in self.__mapper__.c.items()
+        }
         if rel:
             for attr, relation in self.__mapper__.relationships.items():
                 # Avoid recursive loop between to tables.
@@ -55,8 +64,9 @@ class OutputMixin(object):
                 elif isinstance(value.__class__, DeclarativeMeta):
                     res[relation.key] = value.to_dict(backref=self.__table__)
                 else:
-                    res[relation.key] = [i.to_dict(backref=self.__table__)
-                                         for i in value]
+                    res[relation.key] = [
+                        i.to_dict(backref=self.__table__) for i in value
+                    ]
         return res
 
     def to_json(self, rel=None):
@@ -65,9 +75,11 @@ class OutputMixin(object):
                 return x.isoformat()
             if isinstance(x, UUID):
                 return str(x)
+
         if rel is None:
             rel = self.RELATIONSHIPS_TO_DICT
         return json.dumps(self.to_dict(rel), default=extended_encoder)
+
 
 class BaseModel(OutputMixin, Base):
     __tablename__ = "base_model"
@@ -81,7 +93,8 @@ class BaseModel(OutputMixin, Base):
         return "<{0.__class__.__name__}(id={0.id!r})>".format(self)
 
     def as_dict(self):
-       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class Service(BaseModel):
     __tablename__ = "service"
@@ -91,6 +104,7 @@ class Service(BaseModel):
     enabled = Column(Boolean, nullable=False, default=True)
     ms_update = Column(Float, nullable=False, default=0.250)
     logo = Column(String, nullable=False)
+
 
 class Email(Service):
     __tablename__ = "email"
@@ -108,6 +122,7 @@ class EmailProfile(BaseModel):
     is_active = Column(Boolean, nullable=False, default=False)
 
     email_id = Column(Integer, ForeignKey("email.id"))
+
 
 class EmailMessage(BaseModel):
     __tablename__ = "email_message"

@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react"
-import {Modal, Row, Col, Button} from 'react-bootstrap'
+import { Modal, Row, Col, Button } from "react-bootstrap"
 import { fetchEmailProfiles } from "../../http/emailAPI"
 import FormEmailProfile from "../FormEmailProfile"
 
-const EditProfiles = ({show, onHide, email_service_id}) => {
+const EditProfiles = ({ show, onHide, email_service_id }) => {
     const [emailProfiles, setEmailProfiles] = useState([])
 
-    const updateProfiles = () => fetchEmailProfiles().then(data => {
-        console.log("email_service_id", email_service_id)
-        const resultData = data.filter(item => item.email_id === email_service_id)
-        console.log('resultData', resultData)
-        setEmailProfiles(resultData)
-    })
+    const updateProfiles = () =>
+        fetchEmailProfiles().then((data) => {
+            console.log("email_service_id", email_service_id)
+            const resultData = data.filter(
+                (item) => item.email_id === email_service_id
+            )
+            console.log("resultData", resultData)
+            setEmailProfiles(resultData)
+        })
 
     // useEffect(() => {
     //     updateProfiles()
@@ -20,11 +23,7 @@ const EditProfiles = ({show, onHide, email_service_id}) => {
     // console.log("email_service_id", email_service_id)
 
     return (
-        <Modal
-            show={show}
-            onHide={onHide}
-            centered
-        >
+        <Modal size="lg" show={show} onHide={onHide} centered>
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter">
                     Изменить профили
@@ -34,20 +33,41 @@ const EditProfiles = ({show, onHide, email_service_id}) => {
                 <Row className="mt-2">
                     <Col>Ваши профили:</Col>
                 </Row>
-                {emailProfiles.map((item) => {
-                    return (
-                        <div key={item.id}>
-                            <FormEmailProfile emailProfile={item} updateProfiles={updateProfiles} emailProfiles={emailProfiles} setEmailProfiles={setEmailProfiles}></FormEmailProfile>
-                        </div>
-                    )
-                })}
+                {emailProfiles.length > 0 ? (
+                    emailProfiles.map((item) => {
+                        return (
+                            <FormEmailProfile
+                                key={item.id}
+                                emailProfile={item}
+                                updateProfiles={updateProfiles}
+                                emailProfiles={emailProfiles}
+                                setEmailProfiles={setEmailProfiles}
+                            ></FormEmailProfile>
+                        )
+                    })
+                ) : (
+                    <Row className="mt-2">
+                        <Col>
+                            <i>
+                                <b>Профили отсутствуют</b>
+                            </i>
+                        </Col>
+                    </Row>
+                )}
                 <Row className="mt-2">
                     <Col>Добавить профиль:</Col>
                 </Row>
-                <FormEmailProfile email_id={email_service_id} updateProfiles={updateProfiles} emailProfiles={emailProfiles} setEmailProfiles={setEmailProfiles}></FormEmailProfile>
+                <FormEmailProfile
+                    email_id={email_service_id}
+                    updateProfiles={updateProfiles}
+                    emailProfiles={emailProfiles}
+                    setEmailProfiles={setEmailProfiles}
+                ></FormEmailProfile>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="outline-danger" onClick={onHide}>Закрыть</Button>
+                <Button variant="outline-danger" onClick={onHide}>
+                    Закрыть
+                </Button>
             </Modal.Footer>
         </Modal>
     )
