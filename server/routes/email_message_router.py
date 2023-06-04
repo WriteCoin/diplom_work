@@ -10,13 +10,18 @@ from WebAutomation.diplom_work.services.mail import (
     MailMessage,
 )
 from routes.email_profile_router import create_email_connection
+from pprint import pprint
 
 
-def save_db_email_message(message: MailMessage, email_service_id: int):
+def save_db_email_message(message: MailMessage, email_profile_id: int):
     try:
         session = Session()
 
         print("Сессия сохранения нового сообщения")
+
+        pprint("Новое сообщение", message)
+
+        print("Сохранение в БД")
 
         email_message = EmailMessage(
             email=message["msg_email"],
@@ -25,7 +30,7 @@ def save_db_email_message(message: MailMessage, email_service_id: int):
             text=message["text"],
             attachments_count=message["attachments_count"],
             date=message["date"],
-            to_id=email_service,
+            to_id=email_profile_id,
         )
 
         session.add(email_message)
@@ -43,6 +48,7 @@ def email_messages():
     imap_server = request.args.get("profile[imap_server]")
     is_active = request.args.get("profile[is_active]")
     logo = request.args.get("profile[logo]")
+    limit = request.args.get("profile[limit]")
     ms_update = request.args.get("profile[ms_update]")
     name = request.args.get("profile[name]")
     password = request.args.get("profile[password]")
@@ -50,21 +56,27 @@ def email_messages():
     smtp_server = request.args.get("profile[smtp_server]")
     username = request.args.get("profile[username]")
 
-    connections = get_email_connections()
-    if (
-        not str(email_profile_id) in connections
-        or "error" in connections[str(email_profile_id)]
-    ):
-        try:
+    
+    try:
+        connections = get_email_connections()
+
+        if (
+            not str(email_profile_id) in connections
+            or "error" in connections[str(email_profile_id)]
+        ):
             conn = create_email_connection(
                 email_profile_id, imap_server, username, password
             )
+        else:
+            conn = connections[email_profile_id]["connection"]
 
-        except Exception as ex:
-            print(ex)
-            return jsonify(
-                dict(error=500, message="Ошибка при подключении к Email-профилю")
-            )
+    except Exception as ex:
+        message = "Ошибка при подключении к Email-профилю"
+        print(message, ex)
+        print(traceback.format_exc())
+        return jsonify(
+            dict(error=500, message=message)
+        )
 
     try:
         data = get_email_data(
@@ -72,37 +84,46 @@ def email_messages():
             "INBOX",
             "UNSEEN",
             "ALL",
-            partial(save_db_email_message, email_service_id=int(email_id)),
+            partial(save_db_email_message, email_profile_id=int(email_profile_id)),
         )
     except Exception as ex:
-        print("Ошибка при получении писем", ex)
-        return jsonify(dict(error=500, message="Ошибка при получении писем"))
+        message = "Ошибка при получении писем"
+        print(message, ex)
+        print(traceback.format_exc())
+        return jsonify(dict(error=500, message=message))
 
-    session = Session()
+    try:
 
-    print("Сессия получения сообщений")
+        session = Session()
 
-    query = text(
-        "SELECT * FROM email_message INNER JOIN email_profile ON email_message.to_id = email_profile.id INNER JOIN email ON email.id = email_profile.email_id WHERE to_id = :profile_id"
-    )
+        print("Сессия получения сообщений")
 
-    all_email_messages = session.execute(query, {"profile_id": profile_id}).all()
+        query = text(
+            "SELECT * FROM email_message INNER JOIN email_profile ON email_message.to_id = email_profile.id INNER JOIN email ON email.id = email_profile.email_id WHERE to_id = :profile_id"
+        )
 
-    query = text(
-        "SELECT * FROM email_message INNER JOIN email_profile ON email_message.to_id = email_profile.id INNER JOIN email ON email.id = email_profile.email_id WHERE to_id = :profile_id AND is_read = FALSE"
-    )
+        all_email_messages = session.execute(query, {"profile_id": email_profile_id}).all()
 
-    new_email_messages = session.execute(query, {"profile_id": profile_id}).all()
+        query = text(
+            "SELECT * FROM email_message INNER JOIN email_profile ON email_message.to_id = email_profile.id INNER JOIN email ON email.id = email_profile.email_id WHERE to_id = :profile_id AND is_read = FALSE"
+        )
 
-    session.close()
+        new_email_messages = session.execute(query, {"profile_id": email_profile_id}).all()
 
-    all_email_messages_list = [u.as_dict() for u in all_email_messages]
-    new_email_messages_list = [u.as_dict() for u in new_email_messages]
+        session.close()
 
-    email_messages = {
-        "all_email_messages": all_email_messages_list,
-        "new_email_messages": new_email_messages_list,
-    }
+        all_email_messages_list = [u.as_dict() for u in all_email_messages]
+        new_email_messages_list = [u.as_dict() for u in new_email_messages]
 
-    response = jsonify(email_messages)
-    return response
+        email_messages = {
+            "all_email_messages": all_email_messages_list,
+            "new_email_messages": new_email_messages_list,
+        }
+    except Exception as ex:
+        message = "Ошибка при получении писем из базы данных"
+        print(message, ex)
+        print(traceback.format_exc())
+        return jsonify(dict(error=500, message=message))
+    else:
+        response = jsonify(email_messages)
+        return response

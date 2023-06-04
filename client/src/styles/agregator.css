@@ -1,6 +1,23 @@
+html {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    background-color: darkslategray;
+}
+
+#root {
+    margin-right: 100px;
+}
+
 .container {
-    padding-right: 0px;
-    margin-right: 1px;
+    padding-right: 20px;
+    /* overflow-x: hidden; */
 }
 
 .panel {

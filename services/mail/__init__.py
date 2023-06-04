@@ -33,7 +33,7 @@ def date_parse(msg_date):
 
 def from_subj_decode(msg_from_subj):
     if msg_from_subj:
-        encoding = decode_header(msg_from_subj)[0][1]
+        encoding = decode_header(msg_from_subj)[0][1] or 'utf-8'
         msg_from_subj = decode_header(msg_from_subj)[0][0]
         if isinstance(msg_from_subj, bytes):
             msg_from_subj = msg_from_subj.decode(encoding)

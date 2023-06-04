@@ -4,7 +4,16 @@ import ReactDOM from "react-dom/client"
 import "@fortawesome/fontawesome-free/css/all.min.css"
 import "bootstrap-css-only/css/bootstrap.min.css"
 import "mdbreact/dist/css/mdb.css"
-import { MDBCol, MDBContainer, MDBRow } from "mdbreact"
+import {
+    MDBBtn,
+    MDBCard,
+    MDBCardBody,
+    MDBCardText,
+    MDBCardTitle,
+    MDBCol,
+    MDBContainer,
+    MDBRow,
+} from "mdbreact"
 // import { Telegram } from "./telegram"
 // import {viewTree} from './agregator'
 // import { Game } from "./game"
@@ -21,9 +30,21 @@ import AgregatorMessages from "./components/AgregatorMessages"
 const root = ReactDOM.createRoot(document.getElementById("root"))
 root.render(
     <>
-        <MDBContainer fluid className="container m-5 p-0 ">
+        <MDBContainer className="m-5 p-3 bg-warning" fluid>
             <MDBRow>
                 <Panel></Panel>
+                {/* <MDBCol>
+                    <MDBCard>
+                        <MDBCardBody>
+                            <MDBCardTitle>Card title</MDBCardTitle>
+                            <MDBCardText>
+                                Some quick example text to build on the card
+                                title and make up the bulk of the card's
+                                content.
+                            </MDBCardText>
+                        </MDBCardBody>
+                    </MDBCard>
+                </MDBCol> */}
             </MDBRow>
             <MDBRow className="mt-5">
                 <AgregatorMessages></AgregatorMessages>

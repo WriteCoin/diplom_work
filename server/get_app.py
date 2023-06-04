@@ -1,8 +1,10 @@
+from imaplib import IMAP4_SSL
 from flask import Flask, Response, jsonify, url_for, request, g
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 from get_conf import conf
 from db import Session
+from WebAutomation.diplom_work.services.mail import connection
 
 # приложение по REST API
 app = Flask(__name__)
@@ -13,6 +15,7 @@ CORS(app, resources={r"/*": {"origins": origins}})
 # CORS(app, resources={r"/*": {"origins": origins}, r"/email_messages/*": {"origins": "*"}, r"/email_services/*": {"origins": "*"}})
 
 # приложение по socket
+socket_app = Flask(__name__) 
 socket_app = Flask(__name__)
 socket_app.config["SECRET_KEY"] = conf["socket"]["secret"]
 # CORS(socket_app, resources={r"/*": {"origins": origins}})
@@ -44,3 +47,15 @@ session = Session()
 
 def get_email_connections():
 	return {} if not hasattr(g, 'email_connections') else g.email_connections
+
+def create_email_connection(
+    id: int, imap_server: str, username: str, password: str
+) -> IMAP4_SSL:
+    # создание соединения
+    g.email_connections = get_email_connections()
+
+    conn = connection(imap_server, username, password)
+
+    g.email_connections[id] = {"connection": conn}
+
+    return conn

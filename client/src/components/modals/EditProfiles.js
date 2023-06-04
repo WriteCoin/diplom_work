@@ -3,7 +3,7 @@ import { Modal, Row, Col, Button } from "react-bootstrap"
 import { fetchEmailProfiles } from "../../http/emailAPI"
 import FormEmailProfile from "../FormEmailProfile"
 
-const EditProfiles = ({ show, onHide, email_service_id }) => {
+const EditProfiles = ({ show, onHide, email_service_id, email_name }) => {
     const [emailProfiles, setEmailProfiles] = useState([])
 
     const updateProfiles = () =>
@@ -22,11 +22,13 @@ const EditProfiles = ({ show, onHide, email_service_id }) => {
 
     // console.log("email_service_id", email_service_id)
 
+    // const email_name = emailProfiles.length ? emailProfiles[0].name : ""
+
     return (
         <Modal size="lg" show={show} onHide={onHide} centered>
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter">
-                    Изменить профили
+                    Изменить профили почтового сервиса {email_name}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>

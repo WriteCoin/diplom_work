@@ -1,3 +1,4 @@
+import traceback
 import sys
 
 if '-t' in sys.argv and __name__ == '__main__':
@@ -7,6 +8,7 @@ if '-t' in sys.argv and __name__ == '__main__':
         test()
     except Exception as ex:
         print(ex)
+        print(traceback.format_exc())
 elif __name__ == '__main__':
     # Релизный режим запуска
     try:
@@ -14,3 +16,4 @@ elif __name__ == '__main__':
         main()
     except Exception as ex:
         print(ex)
+        print(traceback.format_exc())

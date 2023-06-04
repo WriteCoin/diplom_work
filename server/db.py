@@ -20,7 +20,8 @@ from sqlalchemy.ext.declarative import (
     declared_attr,
     DeclarativeMeta,
 )
-from sqlalchemy.orm import sessionmaker, registry
+from sqlalchemy.sql import exists
+from sqlalchemy.orm import relationship, sessionmaker, registry
 from pprint import pprint
 from WebAutomation.general_utils import *
 
@@ -102,7 +103,8 @@ class Service(BaseModel):
 
     name = Column(String(50), nullable=False, unique=True)
     enabled = Column(Boolean, nullable=False, default=True)
-    ms_update = Column(Float, nullable=False, default=0.250)
+    limit = Column(Integer, nullable=False, default=100)
+    ms_update = Column(Float, nullable=False, default=5000)
     logo = Column(String, nullable=False)
 
 
@@ -122,24 +124,96 @@ class EmailProfile(BaseModel):
     is_active = Column(Boolean, nullable=False, default=False)
 
     email_id = Column(Integer, ForeignKey("email.id"))
+    email_message = relationship("EmailMessage", back_populates="profile")
 
 
 class EmailMessage(BaseModel):
     __tablename__ = "email_message"
 
-    email = Column(String(50), nullable=False)
-    sender = Column(String(255), nullable=False)
-    subject = Column(String(255), nullable=False, default="Без темы")
+    email = Column(String, nullable=False)
+    sender = Column(String, nullable=False)
+    subject = Column(String, nullable=False, default="Без темы")
     text = Column(String, nullable=False)
     attachments_count = Column(Integer, nullable=False, default=0)
     is_read = Column(Boolean, nullable=False, default=False)
     date = Column(DateTime, nullable=False)
 
     to_id = Column(Integer, ForeignKey("email_profile.id"))
+    profile = relationship("EmailProfile", back_populates="email_message")
 
+class TestEmail(Service):
+    __tablename__ = "test_email"
+
+    imap_server = Column(String(50))
+    pop_server = Column(String(50))
+    smtp_server = Column(String(50))
+
+class TestEmailProfile(BaseModel):
+    __tablename__ = "test_email_profile"
+
+    username = Column(String(50), nullable=False, unique=True)
+    password = Column(String, nullable=False)
+    is_active = Column(Boolean, nullable=False, default=False)
+
+    email_id = Column(Integer, ForeignKey("test_email.id"))
+    email_message = relationship("TestEmailMessage", back_populates="profile")
+
+class TestEmailMessage(BaseModel):
+    __tablename__ = "test_email_message"
+
+    email = Column(String, nullable=False)
+    sender = Column(String, nullable=False)
+    subject = Column(String, nullable=False, default="Без темы")
+    text = Column(String, nullable=False)
+    attachments_count = Column(Integer, nullable=False, default=0)
+    is_read = Column(Boolean, nullable=False, default=False)
+    date = Column(DateTime, nullable=False)
+
+    to_id = Column(Integer, ForeignKey("test_email_profile.id"))
+    profile = relationship("TestEmailProfile", back_populates="email_message")
 
 class Messenger(Service):
     __tablename__ = "messenger"
+
+class Telegram(Service):
+    __tablename__ = "telegram"
+
+class TelegramProfile(BaseModel):
+    __tablename__ = "telegram_profile"
+
+    first_name = Column(String, default="")
+    last_name = Column(String, default="")
+
+    message = relationship("TelegramMessage", back_populates="profile")
+    auth_data = relationship("TelegramProfileAuthData", back_populates="profile")
+
+
+class TelegramProfileAuthData(BaseModel):
+    __tablename__ = "telegram_profile_auth_data"
+
+    phone = Column(String(50), nullable=False, unique=True)
+    session_name = Column(String, nullable=False)
+    api_id = Column(Integer, nullable=False)
+    api_hash = Column(String, nullable=False)
+    is_active = Column(Boolean, nullable=False, default=False)
+
+    profile_id = Column(Integer, ForeignKey('telegram_profile.id'))
+    profile = relationship("TelegramProfile", back_populates="auth_data")
+
+class TelegramMessage(BaseModel):
+    __tablename__ = "telegram_message"
+
+    mentioned = Column(Boolean, nullable=False, default=False)
+    silent = Column(Boolean, nullable=False, default=False)
+    message = Column(String, nullable=False)
+    is_read = Column(Boolean, nullable=False, default=False)
+    date = Column(DateTime, nullable=False)
+
+    # sender_id = Column(Integer, ForeignKey('telegram_profile.id'))
+    sender = Column(String, nullable=False)
+
+    to_id = Column(Integer, ForeignKey('telegram_profile.id'))
+    profile = relationship("TelegramProfile", back_populates="message")
 
 
 metadata.reflect(bind=engine)
@@ -151,24 +225,38 @@ def get_subclasses(cls):
         subclasses |= set(get_subclasses(subclass))
     return subclasses
 
+def drop_tables(table_names):
+    session = Session()
+    for table_name in table_names:
+        try:
+            Base.metadata.tables[table_name].drop(engine)
+        except Exception as ex:
+            print(f"Error dropping table {table_name}: {str(ex)}")
+    session.commit()
 
-services = get_subclasses(Service)
-other_models = set(
-    filter(
-        lambda model: not issubclass(model, Service), list(get_subclasses(BaseModel))
-    )
-)
-all_models = get_subclasses(Base)
+def table_is_empty(table):
+    session = Session()
+    result = session.query(exists().where(table.id != None)).scalar() is None
+    session.close()
+    return result
 
-for service in services:
-    service.__abstract__ = None
+# services = get_subclasses(Service)
+# other_models = set(
+#     filter(
+#         lambda model: not issubclass(model, Service), list(get_subclasses(BaseModel))
+#     )
+# )
+# all_models = get_subclasses(Base)
 
-for model in other_models:
-    model.__abstract__ = None
+# for service in services:
+#     service.__abstract__ = None
 
-for model in all_models:
-    if hasattr(model, "__tablename__") and getattr(model, "__abstract__", False):
-        model.metadata.drop_all(engine)
+# for model in other_models:
+#     model.__abstract__ = None
+
+# for model in all_models:
+#     if hasattr(model, "__tablename__") and getattr(model, "__abstract__", False):
+#         model.metadata.drop_all(engine)
         # metadata.drop_all(engine, tables=[model.__table__])
 
 # print('Удаление таблиц')

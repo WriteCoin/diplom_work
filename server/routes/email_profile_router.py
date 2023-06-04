@@ -1,10 +1,8 @@
-from imaplib import IMAP4_SSL
-from get_app import app, session, get_email_connections
+from get_app import app, session, get_email_connections, create_email_connection
 from flask import request, jsonify, g
 from sqlalchemy import text, select
 from db import EmailProfile, Session, Email
 from respect_validation import Validator as v
-from WebAutomation.diplom_work.services.mail import connection
 
 
 @app.route("/email_profiles", methods=["GET"])
@@ -37,7 +35,7 @@ def email_profiles():
         print("Получение всех профилей")
 
         query = text(
-            'SELECT name, enabled, ms_update, logo, imap_server, pop_server, smtp_server, username, password, is_active, email.id AS "email_id", email_profile.id AS "email_profile_id" FROM email INNER JOIN email_profile ON email.id = email_profile.email_id'
+            'SELECT name, enabled, ms_update, email.limit as "limit", logo, imap_server, pop_server, smtp_server, username, password, is_active, email.id AS "email_id", email_profile.id AS "email_profile_id" FROM email INNER JOIN email_profile ON email.id = email_profile.email_id'
         )
 
         email_profiles = session.execute(query).all()
@@ -66,7 +64,7 @@ def email_profiles():
         print("Получение активированных профилей включенных почт")
 
         query = text(
-            'SELECT name, enabled, ms_update, logo, imap_server, pop_server, smtp_server, username, password, is_active, email.id AS "email_id", email_profile.id AS "email_profile_id" FROM email INNER JOIN email_profile ON email.id = email_profile.email_id WHERE is_active = TRUE AND enabled = TRUE'
+            'SELECT name, enabled, ms_update, email.limit as "limit", logo, imap_server, pop_server, smtp_server, username, password, is_active, email.id AS "email_id", email_profile.id AS "email_profile_id" FROM email INNER JOIN email_profile ON email.id = email_profile.email_id WHERE is_active = TRUE AND enabled = TRUE'
         )
 
         email_profiles = session.execute(query).all()
@@ -80,22 +78,22 @@ def email_profiles():
 
 @app.route("/email_profile/<int:id>", methods=["GET"])
 def email_profile(id: int):
-    stmt = select(EmailProfile).where(EmailProfile.id == id)
-    profile = session.scalars(stmt).one().as_dict()
-    return jsonify(profile)
 
+    try:
+        query = text(
+            'SELECT name, enabled, ms_update, email.limit as "limit", logo, imap_server, pop_server, smtp_server, username, password, is_active, email.id AS "email_id", email_profile.id AS "email_profile_id" FROM email INNER JOIN email_profile ON email.id = email_profile.email_id WHERE email_profile.id = :id'
+        )
 
-def create_email_connection(
-    id: int, imap_server: str, username: str, password: str
-) -> IMAP4_SSL:
-    # создание соединения
-    g.email_connections = get_email_connections()
+        profile = session.execute(query, { 'id': id }).one()._asdict()
 
-    conn = connection(imap_server, username, password)
-
-    g.email_connections[id] = {"connection": conn}
-
-    return conn
+        # stmt = select(EmailProfile).where(EmailProfile.id == id)
+        # profile = session.scalars(stmt).one().as_dict()
+    except Exception as ex:
+        message = "Ошибка получения данных профиля"
+        print(message, ex)
+        return jsonify(dict(error=500, message=message))
+    else:
+        return jsonify(profile)
 
 
 @app.route("/email_profile", methods=["POST"])
@@ -158,7 +156,7 @@ def change_email_profile(id: int):
         print("Старый профиль", old_profile)
         if old_profile.is_active != is_active:
             print("Флаг активации изменен")
-            print("Зануление переключателей всех остальных аккаунте")
+            print("Зануление переключателей всех остальных аккаунтов")
             query = text(f"UPDATE email_profile SET is_active = FALSE WHERE id != :id")
 
             session.execute(query, {"id": id})
@@ -168,9 +166,8 @@ def change_email_profile(id: int):
         query = text(
             f"UPDATE email_profile SET username = :username, password = :password, is_active = :is_active WHERE id = :id"
         )
-        # query = query.bindparams(x=data['username'], y=data['password'], z=id)
 
-        print("Выполнение запроса")
+        print("Выполнение запроса UPDATE")
 
         session.execute(
             query,
@@ -182,18 +179,15 @@ def change_email_profile(id: int):
             },
         )
 
-        new_profile = session.query(EmailProfile).where(EmailProfile.id == id).one()
+        print("Запрос на получение измененного профиля")
 
-        print("Новый профиль", new_profile)
-
-        email_service = (
-            session.query(Email)
-            .join(EmailProfile, EmailProfile.email_id == EmailProfile.id)
-            .where(EmailProfile.id == id)
-            .one()
+        query = text(
+            'SELECT name, enabled, ms_update, email.limit as "limit", logo, imap_server, pop_server, smtp_server, username, password, is_active, email.id AS "email_id", email_profile.id AS "email_profile_id" FROM email INNER JOIN email_profile ON email.id = email_profile.email_id WHERE email_profile.id = :id'
         )
 
-        print("email_service", email_service)
+        new_profile = session.execute(query, { 'id': id }).one()
+
+        print("new_profile", new_profile)
 
         # session.flush()
         print("Коммит")
@@ -202,18 +196,20 @@ def change_email_profile(id: int):
         session.close()
 
     except Exception as ex:
-        print(ex)
-        return jsonify(dict(error=500, message="Ошибка изменения профиля"))
+        message = "Ошибка изменения профиля"
+        print(message, ex)
+        return jsonify(dict(error=500, message=message))
 
     try:
         if is_active:
             # создание соединения
-            create_email_connection(id, email_service.imap_server, username, password)
+            create_email_connection(id, new_profile.imap_server, username, password)
 
     except Exception as ex:
-        print(ex)
+        message = "Ошибка при подключении к Email-профилю"
+        print(message, ex)
         return jsonify(
-            dict(error=500, message="Ошибка при подключении к Email-профилю")
+            dict(error=500, message=message)
         )
     else:
         return jsonify("OK")

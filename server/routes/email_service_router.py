@@ -24,12 +24,17 @@ def update_email_service(id: int):
 
     print(data)
 
-    enabled = False if data["enabled"] else True
+    # enabled = False if data["enabled"] else True
+    enabled = data['enabled']
+    limit = data['limit']
+    ms_update = data['ms_update']
 
     print(enabled)
 
     try:
         email.enabled = enabled
+        email.limit = limit
+        email.ms_update = ms_update
 
         session.commit()
     except Exception as ex:

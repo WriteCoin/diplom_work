@@ -5,10 +5,12 @@ export const fetchEmailServices = async () => {
     return data
 }
 
-export const updateEmailService = async (id, enabled) => {
+export const updateEmailService = async (id, enabled, limit, msUpdate) => {
     const { data } = await $host.post("email_service/" + id, {
         params: {
             enabled,
+            limit,
+            ms_update: msUpdate
         },
     })
     return data
